@@ -6,17 +6,19 @@ import xlp_utils
 def print_case(problem, case, methods=None, evaluation_functions=None, file_path=None):
     """
     Print the results of the specified experiments in a nice matter.
+
     :param problem: Problem specification (One of: 'blp', 'mf', 'ks' or 'sp')
     :param case: Case of the problem (number from 1 onwards)
-    :param methods: For which methods the results should be printed (Tuple of any from: 'grad', 'gxi', 'ig' or 'gc')
-        If not specified: all methods are used.
+    :param methods: For which methods the results should be printed (Tuple of any from: 'grad', 'gxi', 'ig' or 'occ')
+      If not specified: all methods are used.
     :param evaluation_functions: Which evaluation functions should be considered: (Tuple of any from: 'cost', 'opt')
-        If not specified: both functions are printed.
-    :param file_path: The path to the result data (if not specified, the default path is used).
+      If not specified: both functions are printed.
+    :param file_path: The path to the result data (if not specified, the default path
+      'results/{problem}_grad_gxi_ig_occ.json' is used.
     """
 
     if file_path is None:
-        file_path = f'results/{problem}_grad_gxi_ig_gc.json'
+        file_path = f'results/{problem}_grad_gxi_ig_occ.json'
 
     data = pd.read_json(file_path, orient='split')
 
@@ -27,7 +29,7 @@ def print_case(problem, case, methods=None, evaluation_functions=None, file_path
     if methods is not None:
         data = data[data['method'] in methods].reset_index()
     else:
-        methods = ('grad', 'gxi', 'ig', 'gc')
+        methods = ('grad', 'gxi', 'ig', 'occ')
     if evaluation_functions is not None:
         data = data[data['evaluation_function'] in evaluation_functions].reset_index()
     else:
@@ -44,7 +46,7 @@ def print_case(problem, case, methods=None, evaluation_functions=None, file_path
         'grad': 'Gradients',
         'gxi': 'Gradient times Input',
         'ig': 'Integrated Gradients',
-        'gc': 'Granger Causal Attributions',
+        'occ': 'Occlusion',
     }
     eval_dict = {
         'cost': 'objective function',
@@ -73,7 +75,7 @@ def print_case(problem, case, methods=None, evaluation_functions=None, file_path
         # also print the input as a, b and c
 
     result = f"Result\t\t\t\t {data['result'][0]}\n" \
-             f"Optimal Solution\t {data[data['eval_func']== 'opt'].reset_index()['result'][0]}\n\n"
+             f"Optimal Solution\t {data[data['eval_func'] == 'opt'].reset_index()['result'][0]}\n\n"
 
     print(header)
     print(inp)
@@ -122,22 +124,19 @@ def print_case(problem, case, methods=None, evaluation_functions=None, file_path
                     print(base)
                     print(attr)
 
-            elif m == 'gc':
+            elif m == 'occ':
                 data_m = data_ev[data_ev['method'] == m].reset_index()
                 attributions = data_m['attributions'][0]
                 attr = f"{method_dict[m]}:\n"
 
                 if problem == 'blp':
                     for i in range(len(attributions)):
-                        attr += f"Attributions for constraint {i+1}: {np.around(np.array(attributions[i]), 4).tolist()}\n"
+                        attr += f"Attributions for constraint {i + 1}: {np.around(np.array(attributions[i]), 4).tolist()}\n"
                 elif problem in ['mf', 'sp']:
                     for i in range(len(attributions)):
-                        attr += f"Attributions for edge {i+1}: {xlp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
+                        attr += f"Attributions for edge {i + 1}: {xlp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
                 elif problem == 'ks':
                     for i in range(len(attributions)):
-                        attr += f"Attributions for item {i+1}: {xlp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
+                        attr += f"Attributions for item {i + 1}: {xlp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
 
                 print(attr)
-
-
-print_case('ks', 4)

@@ -8,14 +8,20 @@ class IntegratedGradients:
     def __init__(self, model):
         self.model = model
 
-    def attribute(self, inp, baseline=None, steps=50, no_jacobian=False):
+    def attribute(self, inp, baseline=None, steps=50, no_jacobian=False, plexplain=False):
         """
         Produce attributions with the integrated gradients method.
+
         :param inp: Input value to compute the attributions for
-        :param baseline: Baseline or None - The baseline has to have the same shape as the input or None, which results
-            in a all zero baseline.
+        :param baseline: Baseline or None - The baseline has to have the same shape as the input or None, which
+          results in a all zero baseline.
         :param steps: The number of steps to approximate the integral
-        :return: The attributions and the outputs for the different steps
+        :param no_jacobian: If the jacobian function from torch should NOT be used to compute the attributions.
+          It is default that the function is used, so this parameter is default False. However, in some cases
+          (very large LPs), the jacobian can be memory inefficient.
+        :param plexplain: If attributions for the plexplain program should be computed (in this case, the
+          parameters have a different structure and require a different handling).
+        :return: The attributions and the outputs for the different steps. The latter can be used for debugging.
         """
         # convert the torch tensors to numpy arrays
         inp = [i.detach().numpy() for i in inp]
@@ -23,7 +29,7 @@ class IntegratedGradients:
             # convert the baseline to numpy arrays
             baseline = [i.detach().numpy() for i in baseline]
         attributions = self.integrated_gradients(self.model, inp, self.output_and_gradients, baseline, steps,
-                                                 no_jacobian)
+                                                 no_jacobian, plexplain)
         return attributions
 
     @staticmethod

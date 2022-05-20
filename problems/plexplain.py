@@ -65,7 +65,7 @@ class PlexPlain(nn.Module):
     Demand[i] == EnergyBuy[i] + EnergyBattery_OUT[i] - EnergyBattery_IN[i] + EnergyPV[i]
 
     :param reduce_dimension: Used to generate a reduced model for the occlusion attributions.
-    :param month: How many months should be considered at once.
+    :param month: The current month to consider (only for evaluations with occlusion).
     :param use_days: Reduce the problem size for the gradient based methods to speedup computation.
     """
 
@@ -78,8 +78,8 @@ class PlexPlain(nn.Module):
         else:
             h_per_year = 8760  # full time steps
 
-        availability_pv = np.genfromtxt('./plexplain_data/PVAvail.csv', delimiter='\n')
-        demand_values = np.genfromtxt('./plexplain_data/demand.csv', delimiter='\n')
+        availability_pv = np.genfromtxt('../evaluation/plexplain_data/PVavail.csv', delimiter='\n')
+        demand_values = np.genfromtxt('../evaluation/plexplain_data/demand.csv', delimiter='\n')
 
         if reduce_dimension:
             availability_pv = np.add.reduceat(availability_pv, np.arange(0, 8760, 8))

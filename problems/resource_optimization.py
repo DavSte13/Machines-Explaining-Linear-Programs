@@ -9,7 +9,7 @@ from cvxpylayers.torch import CvxpyLayer
 import matplotlib.pyplot as plt
 
 
-class BasicLP(nn.Module):
+class ResourceOpt(nn.Module):
     """
     Torch module for the cvxpylayers emulation of the resource optimization problem.
 

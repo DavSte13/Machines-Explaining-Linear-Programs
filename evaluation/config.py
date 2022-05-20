@@ -2,9 +2,17 @@ import torch
 import numpy as np
 """
 This file contains the configs for all evaluation runs.
+Each case is stored as a dict, consisting of the following entries:
+
+  'input': Tuple of the parameters of the problem case (the type of the parameters depends on the problem).
+  'info': Short information about the case (String).
+  'num_of_bases': Number of different baselines in this case
+  'baseX' the X-th baseline for this case, starting with zero. The baselines are given in the same way
+    as the parameters of the problem. 
+    
 """
 
-# ================= Basic Linear Program =================
+# ================= Resource Optimization =================
 # baselines for integrated gradients which occur in multiple cases:
 c1_active_base = (torch.tensor([[0.1, 0.1], [0.2, 0.1]], requires_grad=True),
                   torch.tensor([0.8, 1.], requires_grad=True),
@@ -16,7 +24,7 @@ both_active_base = (torch.tensor([[0.1, 0.225], [0.2, 0.1]], requires_grad=True)
                     torch.tensor([1., 1.], requires_grad=True),
                     torch.tensor([0.1, 0.2], requires_grad=True))
 
-BLP_CASE1 = {
+RO_CASE1 = {
     'input': (
         torch.tensor([[1., 1.], [2., 1.]], requires_grad=True),
         torch.tensor([8., 10.], requires_grad=True),
@@ -32,7 +40,7 @@ BLP_CASE1 = {
     'base3': both_active_base,
 }
 
-BLP_CASE2 = {
+RO_CASE2 = {
     'input': (
         torch.tensor([[1., 1.], [2., 1.5]], requires_grad=True),
         torch.tensor([10., 10.], requires_grad=True),
@@ -48,7 +56,7 @@ BLP_CASE2 = {
     'base3': both_active_base,
 }
 
-BLP_CASE3 = {
+RO_CASE3 = {
     'input': (
         torch.tensor([[1., 2.25], [2., 1.]], requires_grad=True),
         torch.tensor([10., 10.], requires_grad=True),
@@ -64,7 +72,7 @@ BLP_CASE3 = {
     'base3': both_active_base,
 }
 
-BLP_CASE4 = {
+RO_CASE4 = {
     'input': (
         torch.tensor([[1., 1.], [2., 1.]], requires_grad=True),
         torch.tensor([10., 10.], requires_grad=True),
@@ -80,7 +88,7 @@ BLP_CASE4 = {
     'base3': both_active_base,
 }
 
-BLP_CASE5 = {
+RO_CASE5 = {
     'input': (
         torch.tensor([[1., 2.], [2., 1.]], requires_grad=True),
         torch.tensor([10., 10.], requires_grad=True),
@@ -96,7 +104,7 @@ BLP_CASE5 = {
     'base3': both_active_base,
 }
 
-BLP_CASES = [BLP_CASE1, BLP_CASE2, BLP_CASE3, BLP_CASE4, BLP_CASE5]
+RO_CASES = [RO_CASE1, RO_CASE2, RO_CASE3, RO_CASE4, RO_CASE5]
 
 
 # ================= Maximum Flow Problem =================
@@ -421,7 +429,7 @@ SP_CASES = [SP_CASE1, SP_CASE2]
 
 # ================= Collection of all cases =================
 PROBLEM_CASES = {
-    'blp': BLP_CASES,
+    'ro': RO_CASES,
     'mf': MF_CASES,
     'ks': KS_CASES,
     'sp': SP_CASES,

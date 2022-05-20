@@ -15,7 +15,7 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
     :param input_parameters: list of: graph specifications: tuples (V, E) where V is a list of node indices and E is a
         dict of edges including weights
     :param attribution_method: list of: Which attribution method should be applied, one of: 'grad': gradients; 'gxi': gradient
-        times input; 'ig': integrated gradients; 'gc': granger causal attributions
+        times input; 'ig': integrated gradients; 'occ': occlusion
     :param baselines: list of: None or a valid baseline. For each entry in attribution methods which is 'ig', a baseline
         has to be given.
     :param descriptions: list of: strings which are added to the resulting dataframe entry as a description
@@ -32,7 +32,7 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
     # prepare the attribution methods
     gxi = GradientXInput(mf)
     ig = IntegratedGradients(mf)
-    gc = Occlusion(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
+    occ = Occlusion(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
 
     # prepare the result dataframe
     col_list = ['method', 'eval_func', 'input', 'result', 'attributions', 'baseline', 'description']
@@ -52,7 +52,7 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
             # create the new attribution methods
             gxi = GradientXInput(mf)
             ig = IntegratedGradients(mf)
-            gc = Occlusion(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
+            occ = Occlusion(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
 
         # get input parameters from graph
         a, b, c = xlp_utils.convert_graph(*input_parameters[i], 'mf', plot=False)
@@ -82,8 +82,8 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
             attr, _ = ig.attribute(inp, base, steps=100)
             # convert the numpy arrays to lists for storing later
             attr = xlp_utils.numpy_tuple_to_list(attr)
-        elif attribution_method[i] == 'gc':
-            attr = xlp_utils.detach_tuple(gc.attribute(inp), to_list=True)
+        elif attribution_method[i] == 'occ':
+            attr = xlp_utils.detach_tuple(occ.attribute(inp), to_list=True)
 
         # add the results to the attributions dataframe and detach them
         inp = xlp_utils.numpy_tuple_to_list(input_parameters[i])

@@ -1,6 +1,6 @@
-import final_evaluation.evaluate_max_flow as evaluate_max_flow
-import final_evaluation.evaluate_basic_lp as evaluate_basic_lp
-import final_evaluation.config as config
+import evaluation.evaluate_max_flow as evaluate_max_flow
+import evaluation.evaluate_resource_optimization as evaluate_resource_optimization
+import evaluation.config as config
 
 import pandas as pd
 
@@ -10,20 +10,20 @@ import pandas as pd
 # from ex_ilp import evaluate_sp_final
 
 
-def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'gc'), output_file=None):
+def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file=None):
     """
     Evaluates the given problem. By default, all methods are evaluated on all cases for that problem, but it is possible
-        to overwrite the default methods parameter to specify exactly which methods should be evaluated. If no output
-        filename is specified, the results are saved in a json called problem_methods.json, where methods are all used
-        methods separated by underscores.
-    problem is one of: Basic LP: 'blp', Maximum Flow: 'mf', Knapsack: 'ks', Shortest Path: 'sp'
+      to overwrite the default methods parameter to specify exactly which methods should be evaluated. If no output
+      filename is specified, the results are saved in a json called problem_methods.json, where methods are the
+      abbreviation of all methods all used separated by underscores.
+    problem is one of: Resource Optimization 'ro', Maximum Flow: 'mf', Knapsack: 'ks', Shortest Path: 'sp'
     methods is a tuple of at least one of the following: Gradients: 'grad', Gradient times Input 'gxi',
-        Integrated Gradients 'ig', Granger Causal attributions: 'gc'
+      Integrated Gradients 'ig', Occlusion: 'occ'
 
     """
 
     eval_problem = {
-        'blp': evaluate_basic_lp.evaluate_basic_lp,
+        'ro': evaluate_resource_optimization.evaluate_ro,
         'mf': evaluate_max_flow.evaluate_max_flow,
         # 'ks': evaluate_knapsack_final.evaluate_knapsack,  # todo
         # 'sp': evaluate_sp_final.evaluate_sp,  # todo
@@ -81,6 +81,3 @@ def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'gc'), output_file=
         save_path = f'results/{output_file}.json'
 
     results.to_json(save_path, orient='split')
-
-
-evaluate_problems('mf')
