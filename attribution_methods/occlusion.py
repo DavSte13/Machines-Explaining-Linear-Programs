@@ -2,16 +2,22 @@ import torch
 import numpy as np
 
 
-class GrangerCausal:
+class Occlusion:
     def __init__(self, model, reduced_model, eval_function, reduce_rows, max_flow=False):
         """
-        model is the normal model for which the attributions should be computed.
-        reduced_model is the model which accepts parameters of reduced size (either one row or column less)
-        reduce_rows specifies if the reduced model has reduced rows (true) or reduced columns (false)
-        eval_function specifies the type of function for which the problem is evaluated (optimal solution 'opt'
-        or cost function 'cost')
-        if max_flow=True, the dimension of the parameter b is also reduced by one (necessary because iof the problem
-        formulation)
+        Computes occlusion attributions. This function takes a model as well as a reduced model (where the relevant
+        parts of the models are masked out). The output of both models is compared. The function only works if
+        either full rows or full columns are removed from the model.
+
+            :param model: The model to compute the attributions for.
+            :param reduced_model: The model which accepts parameters of a reduced size (corresponding to the masking
+              process).
+            :param reduce_rows: Specifies if the reduced model has reduced rows (true) or reduced columns (false).
+            :param eval_function: This parameter specifies the type of function to evaluate the  problem.
+              Possible values are 'opt' for the optimal solution and 'cost' for the objective function.
+            :param max_flow: Indicates that the problem is a maximum flow problem. This results in a reduction of
+              the parameter 'b' by one in addition to the other reductions, which is necessary because of the
+              problem forumlation.
         """
         self.model = model
         self.reduced_model = reduced_model
@@ -23,7 +29,7 @@ class GrangerCausal:
 
     def attribute(self, inp):
         """
-        Compute the granger causal attributions for the input.
+        Compute the occlusion attributions for the input.
         inp is the input of the model: (a, b, c)
         """
         a, b, c = inp

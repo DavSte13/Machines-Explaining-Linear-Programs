@@ -11,7 +11,6 @@ class PlexPlain(nn.Module):
     # CAPEX: capital expenditures (investment in e.g. machines, buildings ...)
     # OPEX: operational expenditures (running expenditures for a working business operation)
 
-
     Torch module for the cvxpylayers emulation of the PlexPlain model.
     The model consists of four different parameters:
         cost of the photovoltaic:       cost_pv
@@ -19,24 +18,24 @@ class PlexPlain(nn.Module):
         price of power from the grid:   cost_buy
         energy demand:                  dem_tot
 
-        There is also a lifetime (years)
-        given. The cost of the photovoltaic and the battery storage are then divided by the lifetime
+        There is also a lifetime (years) given.
+        The cost of the photovoltaic and the battery storage are then divided by the lifetime
 
-    the preset information:
+    the preset information (can also be considered as parameters):
         availability_pv: percentage of photovoltaic effectiveness per hour
         demand_val: percentage based split of the energy demand to hours
 
     variables:
-        EnergyPV = pyo.Var(time, within=pyo.NonNegativeReals)
-        Demand = pyo.Var(time, within=pyo.NonNegativeReals)
-        EnergyBattery = pyo.Var(time, within=pyo.NonNegativeReals)
-        EnergyBattery_IN = pyo.Var(time, within=pyo.NonNegativeReals)
-        EnergyBattery_OUT = pyo.Var(time, within=pyo.NonNegativeReals)
-        EnergyBuy = pyo.Var(time, within=pyo.NonNegativeReals)
-        CAP_PV = pyo.Var(within=pyo.NonNegativeReals)
-        CAP_BAT = pyo.Var(within=pyo.NonNegativeReals)
+        EnergyPV
+        Demand
+        EnergyBattery
+        EnergyBattery_IN
+        EnergyBattery_OUT
+        EnergyBuy
+        CAP_PV
+        CAP_BAT
 
-    # input settings:
+    input settings:
         CostBuy = pyo.Var(within=pyo.Reals)
         CostPV = pyo.Var(within=pyo.Reals)
         CostBat = pyo.Var(within=pyo.Reals)
@@ -65,18 +64,19 @@ class PlexPlain(nn.Module):
     # energy equation (i-times)
     Demand[i] == EnergyBuy[i] + EnergyBattery_OUT[i] - EnergyBattery_IN[i] + EnergyPV[i]
 
+    :param reduce_dimension: Used to generate a reduced model for the occlusion attributions.
+    :param month: How many months should be considered at once.
+    :param use_days: Reduce the problem size for the gradient based methods to speedup computation.
     """
 
     def __init__(self, reduce_dimension=False, month=1, use_days=False):
         super().__init__()
-        # reduce dimension is used for granger causal attributions, use_days is used to reduce the problem size for
-        # the gradient based methods.
         if reduce_dimension:
-            h_per_year = 1095 - 91  # 8760 - 730  # roughly one month less
+            h_per_year = 1095 - 91  # 3 time steps per day, but with one month less
         elif use_days:
-            h_per_year = 1095  # only days instead of hours
+            h_per_year = 1095  # 3 time steps per day
         else:
-            h_per_year = 8760
+            h_per_year = 8760  # full time steps
 
         availability_pv = np.genfromtxt('./plexplain_data/PVAvail.csv', delimiter='\n')
         demand_values = np.genfromtxt('./plexplain_data/demand.csv', delimiter='\n')
@@ -85,7 +85,7 @@ class PlexPlain(nn.Module):
             availability_pv = np.add.reduceat(availability_pv, np.arange(0, 8760, 8))
             demand_values = np.add.reduceat(demand_values, np.arange(0, 8760, 8))
 
-            mask = [i < (month-1) * 91 or i > month * 91 - 1 for i in range(1095)]
+            mask = [i < (month - 1) * 91 or i > month * 91 - 1 for i in range(1095)]
             availability_pv = availability_pv[mask]
             demand_values = demand_values[mask]
         elif use_days:
@@ -94,7 +94,7 @@ class PlexPlain(nn.Module):
 
         # create the CVXPY problem
         # create the variables and parameters
-        inputs = cp.Parameter(4)    # cost_pv, cost_bat, cost_buy, dem_tot
+        inputs = cp.Parameter(4)  # cost_pv, cost_bat, cost_buy, dem_tot
 
         energy_pv = cp.Variable(shape=h_per_year, nonneg=True)
         energy_battery = cp.Variable(shape=h_per_year, nonneg=True)
@@ -125,7 +125,9 @@ class PlexPlain(nn.Module):
 
     def forward(self, inputs, use_sol=True):
         """
-            Forward the inputs to the cvxpy layer. Compute the TOTEX (oobjective function value) if use_sol = False.
+            Forward the inputs to the cvxpylayer.
+            If use_sol equals True, the optimal solution is returned. Otherwise, the TOTEX value (the objective
+            function value) is computed.
         """
         solution = self.cvxpylayer.forward(inputs)
         if use_sol:

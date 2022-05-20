@@ -11,13 +11,22 @@ import matplotlib.pyplot as plt
 
 class BasicLP(nn.Module):
     """
-    Torch module for the cvxpylayers emulation of the basic linear problem.
-    The objective function can later on be handed over as a parameter to the constructor.
-    reduce_dimensions can be used for granger causal attributions (reduces the number of constraints by 1)
-    m can be used to specify the number of constraints (if not given, it is assumed to be the same as n).
+    Torch module for the cvxpylayers emulation of the resource optimization problem.
+
+    With a number of resources and a number of products, the objective is to find a configuration
+    (how many of each product should be produced), so that the revenue is maxed. The configuration
+    is constrained by the available amount of each resource.
+
+    :param n: Number of products.
+    :param target: Target function for the LP, can either be 'opt' for optimal solution or 'cost' for the
+      objective function.
+    :param reduce_dimension: Reduce the number of constraints by one (used to generate a reduced model for
+      occlusion.
+    :param m: Number of resources. If not given, it is assumed to be the same as n.
+
     """
 
-    def __init__(self, n, objective='cost', reduce_dimension=False, m=None, x_geq_zero=True, maximize=True):
+    def __init__(self, n, target='cost', reduce_dimension=False, m=None):
         super().__init__()
 
         if m is None:
@@ -37,42 +46,33 @@ class BasicLP(nn.Module):
 
         c = cp.Parameter(shape=n)
 
-        if x_geq_zero:
-            constraints = [A @ x <= b,
-                                x >= np.zeros(n)]
-        else:
-            constraints = [A @ x <= b]
+        constraints = [A @ x <= b,
+                       x >= np.zeros(n)]
 
         # Form objective and problem
-        if maximize:
-            obj = cp.Maximize(c.T @ x)
-        else:
-            obj = cp.Minimize(c.T @ x)
+        obj = cp.Maximize(c.T @ x)
         prob = cp.Problem(obj, constraints)
 
         assert prob.is_dpp()
 
         self.cvxpylayer = CvxpyLayer(prob, parameters=[A, b, c], variables=[x])
 
-        self.objective = objective
+        self.target = target
 
     def forward(self, A, b, c):
         """
         :param A: value for the parameter A (as torch tensor)
         :param b: value for the parameter b (as torch tensor)
+        :param c: value for the parameter c (as torch tensor)
         :return: The objective function applied to the optimal solution of the LP
         """
 
-        solution,  = self.cvxpylayer.forward(A, b, c)
+        solution, = self.cvxpylayer.forward(A, b, c)
 
-        if self.objective == 'opt':
+        if self.target == 'opt':
             result = solution
-        elif self.objective == 'cost':
+        elif self.target == 'cost':
             result = solution.mul(c).sum()
-        elif self.objective == 'sum':
-            result = solution.sum()
-        elif self.objective == 'l2':
-            result = solution.dist(torch.tensor(np.zeros(self.n)))
         else:
             raise ValueError("Unknown objective function")
 
@@ -84,11 +84,11 @@ class BasicLP(nn.Module):
         results (e.g. the constraint lines)
         """
         # set the objective to "optimal solution"
-        if self.objective != 'opt':
-            previous_obj = self.objective
-            self.objective = 'opt'
+        if self.target != 'opt':
+            previous_obj = self.target
+            self.target = 'opt'
         else:
-            previous_obj = self.objective
+            previous_obj = self.target
 
         # find the optimal solution
         opt_solution = self.forward(A, b, c).detach().numpy()
@@ -111,7 +111,7 @@ class BasicLP(nn.Module):
 
         # compute and plot the constraints
         color_list = ['tab:pink', 'tab:red', 'tab:green', 'tab:olive', 'tab:purple', 'tab:brown', 'tab:gray']
-        constraint_information = []     # track the start, median and end point of each constraint
+        constraint_information = []  # track the start, median and end point of each constraint
         for i in range(self.m):
             if A[i][1] == 0:
                 tmp = np.ones(x2.shape) * b[i]
@@ -138,7 +138,7 @@ class BasicLP(nn.Module):
         plt.legend()
 
         # reset the objective
-        self.objective = previous_obj
+        self.target = previous_obj
 
         return plt, constraint_information, color_list
 
@@ -175,13 +175,13 @@ class BasicLP(nn.Module):
             # check that the constraint is not parallel to the x1 axis or x2 axis
             if (not c_inf[i][0][0] == c_inf[i][1][0]) and (not c_inf[i][0][1] == c_inf[i][1][1]):
                 # compute gradient of the constraint (image-wise)
-                m = (c_inf[i][1][1] - c_inf[i][0][1])/(c_inf[i][1][0] - c_inf[i][0][0])
+                m = (c_inf[i][1][1] - c_inf[i][0][1]) / (c_inf[i][1][0] - c_inf[i][0][0])
                 # intersection with x2-axis:
                 b = c_inf[i][0][1]
 
                 # plot the arrows on the axis lines if the attributions are not zero:
                 if not attr_A[i][0] == 0:
-                    plot.arrow(-b/m, 0, attr_A_norm[i][0], 0.1, length_includes_head=True, color=colors[i],
+                    plot.arrow(-b / m, 0, attr_A_norm[i][0], 0.1, length_includes_head=True, color=colors[i],
                                head_width=0.3, width=0.01)
                 if not attr_A[i][1] == 0:
                     plot.arrow(0, b, 0.1, attr_A_norm[i][1], length_includes_head=True, color=colors[i], head_width=0.3,
@@ -189,9 +189,9 @@ class BasicLP(nn.Module):
 
                 # plot the arrow for b:
                 if not attr_b[i] == 0:
-                    length = math.sqrt(1/2)*abs(attr_b_norm[i])
+                    length = math.sqrt(1 / 2) * abs(attr_b_norm[i])
                     sign = np.sign(attr_b_norm[i])
-                    plot.arrow(-b/(2 * m), b/2, sign * length, sign * length, length_includes_head=True,
+                    plot.arrow(-b / (2 * m), b / 2, sign * length, sign * length, length_includes_head=True,
                                color=colors[i], head_width=0.2)
 
             elif c_inf[i][0][0] == c_inf[i][1][0]:
@@ -205,7 +205,7 @@ class BasicLP(nn.Module):
 
                 # plot the arrow for b:
                 if not attr_b[i] == 0:
-                    plot.arrow(c_inf[i][0][0], c_inf[i][1][1]/2, attr_b_norm[i], 0, length_includes_head=True,
+                    plot.arrow(c_inf[i][0][0], c_inf[i][1][1] / 2, attr_b_norm[i], 0, length_includes_head=True,
                                color=colors[i], head_width=0.2)
 
             elif c_inf[i][0][0] == c_inf[i][1][0]:
@@ -219,7 +219,7 @@ class BasicLP(nn.Module):
 
                 # plot the arrow for b:
                 if not attr_b[i] == 0:
-                    plot.arrow(c_inf[i][1][0]/2, c_inf[i][0][1], 0, attr_b_norm[i], length_includes_head=True,
+                    plot.arrow(c_inf[i][1][0] / 2, c_inf[i][0][1], 0, attr_b_norm[i], length_includes_head=True,
                                color=colors[i], head_width=0.2)
 
         plot.show()
@@ -230,11 +230,11 @@ class BasicLP(nn.Module):
         Plot both the problem and the given gradients
         """
         # set the objective to "optimal solution"
-        if self.objective != 'opt':
-            previous_obj = self.objective
-            self.objective = 'opt'
+        if self.target != 'opt':
+            previous_obj = self.target
+            self.target = 'opt'
         else:
-            previous_obj = self.objective
+            previous_obj = self.target
 
         # find the optimal solution
         opt_solution = self.forward(A, b, c).detach().numpy()
@@ -355,4 +355,4 @@ class BasicLP(nn.Module):
         plt.show()
 
         # reset the objective
-        self.objective = previous_obj
+        self.target = previous_obj

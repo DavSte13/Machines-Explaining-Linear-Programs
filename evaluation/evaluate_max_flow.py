@@ -4,7 +4,7 @@ import numpy as np
 from problems.max_flow import MaxFlow
 from attribution_methods.gradientxinput import GradientXInput
 from attribution_methods.integrated_gradients import IntegratedGradients
-from attribution_methods.occlusion import GrangerCausal
+from attribution_methods.occlusion import Occlusion
 import xlp_utils
 
 
@@ -27,12 +27,12 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
     n = len(input_parameters[0][0])
 
     mf = MaxFlow(m, n, evaluation_function)
-    mf_reduced = MaxFlow(m, n, evaluation_function, reduce_edges=True)
+    mf_reduced = MaxFlow(m, n, evaluation_function, reduce_dimension=True)
 
     # prepare the attribution methods
     gxi = GradientXInput(mf)
     ig = IntegratedGradients(mf)
-    gc = GrangerCausal(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
+    gc = Occlusion(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
 
     # prepare the result dataframe
     col_list = ['method', 'eval_func', 'input', 'result', 'attributions', 'baseline', 'description']
@@ -47,12 +47,12 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
             m = len(input_parameters[i][1])
             n = len(input_parameters[i][0])
             mf = MaxFlow(m, n, evaluation_function)
-            mf_reduced = MaxFlow(m, n, evaluation_function, reduce_edges=True)
+            mf_reduced = MaxFlow(m, n, evaluation_function, reduce_dimension=True)
 
             # create the new attribution methods
             gxi = GradientXInput(mf)
             ig = IntegratedGradients(mf)
-            gc = GrangerCausal(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
+            gc = Occlusion(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
 
         # get input parameters from graph
         a, b, c = xlp_utils.convert_graph(*input_parameters[i], 'mf', plot=False)

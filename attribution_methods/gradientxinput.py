@@ -9,8 +9,9 @@ class GradientXInput:
         """
         Computes the gradient times input attributions for the given input.
 
-        Uses the torch jacobian function to compute the partial gradients of the model w.r.t. its parameters.
-        Multiplies these gradients with the respective input values afterwards.no_jacibian indicates that the standard backward function of torch should be used instead.
+        Uses the torch jacobian function to compute the partial gradient of the model w.r.t. its parameters.
+        Multiplies these gradients with the respective input values afterwards.
+        no_jacibian indicates that the standard backward function of torch should be used instead.
         This works if the output of the model is a scalar.
         :param inp: tuple of inputs for the attributions
         :param no_jacobian: If the standard torch backward function should be used instead of the jacobian
@@ -32,12 +33,3 @@ class GradientXInput:
             result.append(gradxinput)
 
         return tuple(result)
-
-
-
-
-
-
-
-
-

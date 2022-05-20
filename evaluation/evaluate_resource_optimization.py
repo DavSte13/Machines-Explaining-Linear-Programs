@@ -4,7 +4,7 @@ import numpy as np
 from problems.resource_optimization import BasicLP
 from attribution_methods.gradientxinput import GradientXInput
 from attribution_methods.integrated_gradients import IntegratedGradients
-from attribution_methods.occlusion import GrangerCausal
+from attribution_methods.occlusion import Occlusion
 import xlp_utils
 
 
@@ -29,7 +29,7 @@ def evaluate_basic_lp(evaluation_function, input_parameters, attribution_method,
     # prepare the attribution methods
     gxi = GradientXInput(blp)
     ig = IntegratedGradients(blp)
-    gc = GrangerCausal(blp, blp_reduced, evaluation_function, reduce_rows=True)
+    gc = Occlusion(blp, blp_reduced, evaluation_function, reduce_rows=True)
 
     # prepare the result dataframe
     col_list = ['method', 'eval_func', 'input', 'result', 'attributions', 'baseline', 'description']
