@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-import ex_lp_utils
+import xlp_utils
 
 
 class IntegratedGradients:
@@ -178,9 +178,9 @@ class IntegratedGradients:
                 # only for plexplain:
                 # jac = torch.autograd.functional.jacobian(model, *inp)
 
-            output = ex_lp_utils.detach_tuple(output)
+            output = xlp_utils.detach_tuple(output)
             outputs.append(output)
-            gradient = ex_lp_utils.detach_tuple(jac)
+            gradient = xlp_utils.detach_tuple(jac)
             gradients.append(gradient)
 
 

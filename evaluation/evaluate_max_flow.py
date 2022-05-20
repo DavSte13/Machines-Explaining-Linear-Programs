@@ -4,8 +4,8 @@ import numpy as np
 from problems.max_flow import MaxFlow
 from attribution_methods.gradientxinput import GradientXInput
 from attribution_methods.integrated_gradients import IntegratedGradients
-from attribution_methods.granger_causal import GrangerCausal
-import ex_lp_utils
+from attribution_methods.occlusion import GrangerCausal
+import xlp_utils
 
 
 def evaluate_max_flow(evaluation_function, input_parameters, attribution_method, baselines, descriptions):
@@ -55,7 +55,7 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
             gc = GrangerCausal(mf, mf_reduced, evaluation_function, reduce_rows=False, max_flow=True)
 
         # get input parameters from graph
-        a, b, c = ex_lp_utils.convert_graph(*input_parameters[i], 'mf', plot=False)
+        a, b, c = xlp_utils.convert_graph(*input_parameters[i], 'mf', plot=False)
         a_tch = torch.tensor(a, requires_grad=True)
         b_tch = torch.tensor(b, requires_grad=True)
         c_tch = torch.tensor(c, requires_grad=True)
@@ -67,27 +67,27 @@ def evaluate_max_flow(evaluation_function, input_parameters, attribution_method,
         
         # create attributions and detach them
         if attribution_method[i] == 'grad':
-            attr = ex_lp_utils.detach_tuple(torch.autograd.functional.jacobian(mf, inp), to_list=True)
+            attr = xlp_utils.detach_tuple(torch.autograd.functional.jacobian(mf, inp), to_list=True)
             # convert to list to make data types unified
             attr = list(attr)
         elif attribution_method[i] == 'gxi':
-            attr = ex_lp_utils.detach_tuple(gxi.attribute(inp), to_list=True)
+            attr = xlp_utils.detach_tuple(gxi.attribute(inp), to_list=True)
             # convert to list to make data types unified
             attr = list(attr)
         elif attribution_method[i] == 'ig':
             # get the baseline parameters from the baseline graph
-            base_a, base_b, base_c = ex_lp_utils.convert_graph(*baselines[i], 'mf', plot=False)
+            base_a, base_b, base_c = xlp_utils.convert_graph(*baselines[i], 'mf', plot=False)
             base = (torch.Tensor(base_a), torch.Tensor(base_b), torch.Tensor(base_c))
 
             attr, _ = ig.attribute(inp, base, steps=100)
             # convert the numpy arrays to lists for storing later
-            attr = ex_lp_utils.numpy_tuple_to_list(attr)
+            attr = xlp_utils.numpy_tuple_to_list(attr)
         elif attribution_method[i] == 'gc':
-            attr = ex_lp_utils.detach_tuple(gc.attribute(inp), to_list=True)
+            attr = xlp_utils.detach_tuple(gc.attribute(inp), to_list=True)
 
         # add the results to the attributions dataframe and detach them
-        inp = ex_lp_utils.numpy_tuple_to_list(input_parameters[i])
-        base = ex_lp_utils.numpy_tuple_to_list(baselines[i])
+        inp = xlp_utils.numpy_tuple_to_list(input_parameters[i])
+        base = xlp_utils.numpy_tuple_to_list(baselines[i])
         values = pd.DataFrame([[attribution_method[i], evaluation_function, inp, result, attr,
                                 base, descriptions[i]]], columns=col_list)
         attributions = attributions.append(values, ignore_index=True)

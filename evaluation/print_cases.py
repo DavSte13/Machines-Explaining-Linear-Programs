@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import ex_lp_utils
+import xlp_utils
 
 
 def print_case(problem, case, methods=None, evaluation_functions=None, file_path=None):
@@ -132,10 +132,10 @@ def print_case(problem, case, methods=None, evaluation_functions=None, file_path
                         attr += f"Attributions for constraint {i+1}: {np.around(np.array(attributions[i]), 4).tolist()}\n"
                 elif problem in ['mf', 'sp']:
                     for i in range(len(attributions)):
-                        attr += f"Attributions for edge {i+1}: {ex_lp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
+                        attr += f"Attributions for edge {i+1}: {xlp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
                 elif problem == 'ks':
                     for i in range(len(attributions)):
-                        attr += f"Attributions for item {i+1}: {ex_lp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
+                        attr += f"Attributions for item {i+1}: {xlp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
 
                 print(attr)
 
