@@ -2,6 +2,10 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 
+"""
+Generation of a larger random example for the maximum flow problem as well as the knapsack problem.
+The random generated examples are not automatically stored.
+"""
 # generate a random instance of the knapsack problem
 np.random.seed(42)
 

@@ -1,62 +1,47 @@
-import cvxpy as cp
-import numpy as np
 import torch
 import torch.nn as nn
-from cvxpylayers.torch import CvxpyLayer
+from CombOptNet.models.comboptnet import CombOptNetModule
 
 
 class Knapsack(nn.Module):
     """
-    Torch module for the cvxpylayers emulation of the knapsack problem.
-    The objective function can be handed over as a parameter to the constructor.
-
-    === This problem is an integer problem, but the following module will treat it as a
-        linear program. There exists a separate ILP module. ===
+    Torch module for the comboptnet emulation of the knapsack problem.
+    The target function can be handed over as a parameter to the constructor.
 
     objective:      find the best combination of items (value) to take into the backpack
     subject to:     do not violate the total amount of space in the backpack
+
+    :param target: The target function, can either be the objective function 'cost' or the optimal solution 'opt'.
+    :param max_copies: The maximum number of each item which can be put into the knapsack (default: 1).
     """
 
-    def __init__(self, n, max_copies=1, objective='opt'):
+    def __init__(self, target='opt', max_copies=1):
         super().__init__()
-        self.n = n  # number of items
+        var_ranges = {'lb': 0, 'ub': max_copies}
 
-        x = cp.Variable(n)
+        self.ilp_module = CombOptNetModule(var_ranges) #, tau=0.5)
 
-        A = cp.Parameter(n)
-        b = cp.Parameter(1)
-        c = cp.Parameter(n)
-
-        obj = cp.Maximize(c.T @ x)
-        constr = [x >= 0,
-                  A.T @ x <= b,
-                  x <= np.ones(n) * max_copies]
-
-        prob = cp.Problem(obj, constr)
-        assert prob.is_dpp()
-
-        self.cvxpylayer = CvxpyLayer(prob, parameters=[A, b, c], variables=[x])
-
-        self.objective = objective
+        self.target = target
 
     def forward(self, A, b, c):
         """
-        :param A: vector of item weights
-        :param b: total capacity of the knapsack
-        :param c: vector of item values
-        :return: objective function applied to the optimal solution of the LP
+        :param A: vector of item weights.
+        :param b: total capacity of the knapsack.
+        :param c: vector of item values.
+        :return: target function applied to the optimal solution of the LP.
         """
+        # make c and b negative to be in line with the ilp formulation of comboptnet
+        c = -c.view(1, -1)
+        b = -b
+        constraints = torch.hstack((A, b))
+        constraints = constraints.unsqueeze(0)
 
-        solution, = self.cvxpylayer.forward(A, b, c)
+        solution = self.ilp_module.forward(c, constraints)
 
-        if self.objective == 'opt':
+        if self.target == 'opt':
             result = solution
-        elif self.objective == 'cost':
+        elif self.target == 'cost':
             result = solution.mul(c).sum()
-        elif self.objective == 'sum':
-            result = solution.sum()
-        elif self.objective == 'l2':
-            result = solution.dist(torch.tensor(np.zeros(self.m)))
         else:
             raise ValueError("Unknown objective function")
 

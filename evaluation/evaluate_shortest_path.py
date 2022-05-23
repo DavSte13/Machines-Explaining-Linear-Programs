@@ -1,6 +1,6 @@
 import torch
 import pandas as pd
-from problems.shortest_path_ilp import ShortestPath
+from problems.shortest_path import ShortestPath
 from attribution_methods.gradientxinput import GradientXInput
 from attribution_methods.integrated_gradients import IntegratedGradients
 from attribution_methods.occlusion import Occlusion

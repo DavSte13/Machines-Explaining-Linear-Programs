@@ -1,6 +1,6 @@
 import torch
 import pandas as pd
-from problems.knapsack_ilp import Knapsack
+from problems.knapsack import Knapsack
 from attribution_methods.gradientxinput import GradientXInput
 from attribution_methods.integrated_gradients import IntegratedGradients
 from attribution_methods.occlusion import Occlusion

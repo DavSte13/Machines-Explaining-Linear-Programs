@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 
-import xlp_utils
 from problems.plexplain import PlexPlain
 from attribution_methods.gradientxinput import GradientXInput
 from attribution_methods.integrated_gradients import IntegratedGradients
