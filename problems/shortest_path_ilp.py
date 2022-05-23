@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from models.comboptnet import CombOptNetModule
+from CombOptNet.models.comboptnet import CombOptNetModule
 import numpy as np
 
 

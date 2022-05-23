@@ -1,13 +1,10 @@
 import evaluation.evaluate_max_flow as evaluate_max_flow
 import evaluation.evaluate_resource_optimization as evaluate_resource_optimization
+import evaluation.evaluate_knapsack as evaluate_knapsack
+import evaluation.evaluate_shortest_path as evaluate_shortest_path
 import evaluation.config as config
 
 import pandas as pd
-
-#todo: Import the other two problem files - handle the dependencies to comboptnet
-
-# from ex_ilp import evaluate_knapsack_final
-# from ex_ilp import evaluate_sp_final
 
 
 def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file=None):
@@ -25,8 +22,8 @@ def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file
     eval_problem = {
         'ro': evaluate_resource_optimization.evaluate_ro,
         'mf': evaluate_max_flow.evaluate_max_flow,
-        # 'ks': evaluate_knapsack_final.evaluate_knapsack,  # todo
-        # 'sp': evaluate_sp_final.evaluate_sp,  # todo
+        'ks': evaluate_knapsack.evaluate_knapsack,
+        'sp': evaluate_shortest_path.evaluate_sp,
     }
 
     # fetch all problem cases for the specified problem:
