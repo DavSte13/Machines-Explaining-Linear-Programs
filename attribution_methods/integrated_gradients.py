@@ -130,11 +130,12 @@ class IntegratedGradients:
 
         avg_grads = accumulated_grads
 
-        integrated_gradients = [(inp[i] - baseline[i]) * avg_grads[i] for i in range(len(inp))]  # shape: <inp.shape>
         # only for plexplain:
         if plexplain:
             diff_inp_base = np.array([inp[i] - baseline[i] for i in range(len(inp))])
             integrated_gradients = [avg_grads[i] * diff_inp_base for i in range(len(avg_grads))]
+        else:
+            integrated_gradients = [(inp[i] - baseline[i]) * avg_grads[i] for i in range(len(inp))]  # shape: <inp.shape>
 
         return integrated_gradients, outputs
 

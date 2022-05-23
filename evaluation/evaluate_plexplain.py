@@ -9,17 +9,17 @@ from attribution_methods.integrated_gradients import IntegratedGradients
 
 def print_nice(inp, res, attr, base=None, is_ig=False, is_opt=False):
     if not is_ig:
-        attr = xlp_utils.detach_tuple(attr)
+        attr = attr.detach().numpy()
     else:
-        base = xlp_utils.detach_tuple(base)
+        base = base.detach().numpy()
 
-    inp = xlp_utils.detach_tuple(inp)
+    inp = inp.detach().numpy()
 
     print("============= Input =============")
     print("Cost PV:\t\t", inp[0])
     print("Cost bat:\t\t", inp[1])
     print("Cost energy:\t", inp[2])
-    print("Total demand\t:", inp[3])
+    print("Total demand:\t", inp[3])
 
     print("\n============= Result =============")
     print(res.detach().numpy())
@@ -32,6 +32,7 @@ def print_nice(inp, res, attr, base=None, is_ig=False, is_opt=False):
         print("Total demand:\t", attr[3])
     else:
         print("\n============= Attributions =============")
+        print(attr)
         print("Cap bat:\t\t", attr[-2])
         print("Cap pv:\t\t", attr[-1])
 
@@ -49,7 +50,7 @@ def evaluate_plexplain(method):
     For the gradient based methods, the attributions are computed on 8-hour intervals. For occlusion, the
     attributions for each month are computed.
 
-    method: One of ('grad', 'gxi', 'ig', 'occ')
+    :param method: One of ('grad', 'gxi', 'ig', 'occ')
     """
     # define the model and the base parameters
     plexplain = PlexPlain(use_days=True)
@@ -62,43 +63,41 @@ def evaluate_plexplain(method):
     cost_buy = 0.25
     dem_tot = 3500.
 
-    base = torch.tensor([cost_pv/100/lifetime, cost_bat/100/lifetime, cost_buy/100, dem_tot/100], requires_grad=True)
+    base = torch.tensor([cost_pv / 100 / lifetime, cost_bat / 100 / lifetime, cost_buy / 100, dem_tot / 100],
+                        requires_grad=True)
 
     inputs = torch.tensor([cost_pv / lifetime, cost_bat / lifetime, cost_buy, dem_tot], requires_grad=True)
-    tensor_inputs = (torch.tensor([cost_pv/lifetime], requires_grad=True),
-                     torch.tensor([cost_bat/lifetime], requires_grad=True),
-                     torch.tensor([cost_buy/lifetime], requires_grad=True),
-                     torch.tensor([dem_tot/lifetime], requires_grad=True))
-
+    tensor_inputs = (torch.tensor([cost_pv / lifetime], requires_grad=True),
+                     torch.tensor([cost_bat / lifetime], requires_grad=True),
+                     torch.tensor([cost_buy / lifetime], requires_grad=True),
+                     torch.tensor([dem_tot / lifetime], requires_grad=True))
 
     if method == 'grad':
         # solve the problem
-        result = plexplain.forward(tensor_inputs, False)
-
+        result = plexplain.forward(inputs, False)
         # compute the gradients for the model
         result.backward()
-        attributions_grad = [i.grad for i in inputs]
-        print(attributions_grad)
+        attributions_grad = inputs.grad
         print_nice(inputs, result, attributions_grad)
 
     if method == 'gxi':
         # solve the problem
-        result = plexplain.forward(tensor_inputs, False)
+        result = plexplain.forward(inputs, False)
         # compute the gradient times input attributions for the model
-        attributions_gxi = gxi.attribute([inputs], no_jacobian=True)
+        attributions_gxi, = gxi.attribute([inputs], no_jacobian=True)
         print_nice(inputs, result, attributions_gxi)
 
     if method == 'ig':
         # solve the problem
-        result = plexplain.forward(tensor_inputs, False)
+        result = plexplain.forward(inputs, False)
         # compute the IG attributions for the model
-        attributions_ig = ig.attribute(inputs, base, no_jacobian=True, steps=20, plexplain=True)[0]
-        print_nice(inputs, result, attributions_ig, base, is_ig=True, is_opt=True)
+        attributions_ig, = ig.attribute(inputs, base, no_jacobian=True, steps=20, plexplain=True)[0]
+        print_nice(inputs, result, attributions_ig, base, is_ig=True)
 
     if method == 'occ':
         # solve the problem
         result = plexplain.forward(inputs, False)
-        solution = plexplain.forward(inputs)
+        solution = plexplain.forward(inputs, True)
 
         # compute the occlusion attributions
         cap_pv = solution[6]
@@ -113,7 +112,7 @@ def evaluate_plexplain(method):
         # computing the attribution values per month
         occ = np.ones([12, 5])
         for m in range(12):
-            reduced_model = PlexPlain(reduce_dimension=True, month=m+1)
+            reduced_model = PlexPlain(reduce_dimension=True, month=m + 1)
             red_result, red_solution = reduced_model.forward(inputs, False), reduced_model.forward(inputs, True)
 
             occ[m][0] = result - red_result
@@ -127,5 +126,3 @@ def evaluate_plexplain(method):
         print("============= Occlusion attributions: =============")
         print("\tTOTEX\tcap PV\t cap bat OPEX \t  own generation")
         print(occ.round(4))
-
-evaluate_plexplain('occ')

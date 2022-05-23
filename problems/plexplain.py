@@ -123,7 +123,7 @@ class PlexPlain(nn.Module):
                                      variables=[energy_pv, energy_battery, energy_battery_in,
                                                 energy_battery_out, energy_buy, cap_bat, cap_pv])
 
-    def forward(self, inputs, use_sol=True):
+    def forward(self, inputs, use_sol=False):
         """
             Forward the inputs to the cvxpylayer.
             If use_sol equals True, the optimal solution is returned. Otherwise, the TOTEX value (the objective
