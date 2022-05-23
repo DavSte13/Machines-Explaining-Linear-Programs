@@ -17,7 +17,7 @@ class ShortestPath(nn.Module):
     def __init__(self, target='cost'):
         super().__init__()
 
-        self.ilp_module = CombOptNetModule(var_ranges={'lb': 0, 'ub': 1}, tau=0.5)
+        self.ilp_module = CombOptNetModule(variable_range={'lb': 0, 'ub': 1}, tau=0.5)
 
         self.target = target
 

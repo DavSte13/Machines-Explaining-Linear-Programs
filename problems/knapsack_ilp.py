@@ -19,7 +19,7 @@ class Knapsack(nn.Module):
         super().__init__()
         var_ranges = {'lb': 0, 'ub': max_copies}
 
-        self.ilp_module = CombOptNetModule(var_ranges, tau=0.5)
+        self.ilp_module = CombOptNetModule(var_ranges) #, tau=0.5)
 
         self.target = target
 
