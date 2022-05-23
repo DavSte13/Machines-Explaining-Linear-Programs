@@ -1,0 +1,3 @@
+[submodule "CombOptNet"]
+	path = CombOptNet
+	url = https://github.com/martius-lab/CombOptNet.git
