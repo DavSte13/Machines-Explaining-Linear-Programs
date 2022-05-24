@@ -5,7 +5,7 @@ import torch.nn as nn
 from cvxpylayers.torch import CvxpyLayer
 import argparse
 
-parser = argparse.ArgumentParser(description='Show the attribution methods results on the .')
+parser = argparse.ArgumentParser(description='Show the attribution methods results on the MAP example.')
 args = parser.parse_args()
 
 
