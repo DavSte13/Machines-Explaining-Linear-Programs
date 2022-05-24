@@ -1,0 +1,14 @@
+# Dependencies of this project
+networkx
+pandas
+cvxpy
+numpy
+torch
+cvxpylayers
+matplotlib
+argparse
+
+# CombOptNet requirements
+jax >= 0.2.8
+jaxlib >= 0.1.58
+gurobipy >= 9.1.0
