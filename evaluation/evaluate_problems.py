@@ -19,7 +19,6 @@ parser.add_argument("--output_file", help="Specify an output file name. By defau
                                           "methods separated by underscores.")
 args = parser.parse_args()
 
-
 def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file=None):
     """
     Evaluates the given problem. By default, all methods are evaluated on all cases for that problem, but it is possible
@@ -30,6 +29,9 @@ def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file
     methods is a tuple of at least one of the following: Gradients: 'grad', Gradient times Input 'gxi',
       Integrated Gradients 'ig', Occlusion: 'occ'
     """
+    if methods is None:
+        methods=('grad', 'gxi', 'ig', 'occ')
+
     eval_problem = {
         'ro': evaluate_resource_optimization.evaluate_ro,
         'mf': evaluate_max_flow.evaluate_max_flow,
@@ -84,11 +86,11 @@ def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file
 
     # create the filename for the json
     if output_file is None:
-        save_path = f'results/{problem}_{"_".join(methods)}.json'
+        save_path = f'evaluation/results/{problem}_{"_".join(methods)}.json'
     else:
-        save_path = f'results/{output_file}.json'
+        save_path = f'evaluation/results/{output_file}.json'
 
     results.to_json(save_path, orient='split')
 
 
-evaluate_problems(args.problem, args.method, args.output_file)
+evaluate_problems(args.problem, args.methods, args.output_file)

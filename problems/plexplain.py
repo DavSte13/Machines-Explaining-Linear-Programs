@@ -78,8 +78,8 @@ class PlexPlain(nn.Module):
         else:
             h_per_year = 8760  # full time steps
 
-        availability_pv = np.genfromtxt('../evaluation/plexplain_data/PVavail.csv', delimiter='\n')
-        demand_values = np.genfromtxt('../evaluation/plexplain_data/demand.csv', delimiter='\n')
+        availability_pv = np.genfromtxt('evaluation/plexplain_data/PVavail.csv', delimiter='\n')
+        demand_values = np.genfromtxt('evaluation/plexplain_data/demand.csv', delimiter='\n')
 
         if reduce_dimension:
             availability_pv = np.add.reduceat(availability_pv, np.arange(0, 8760, 8))
