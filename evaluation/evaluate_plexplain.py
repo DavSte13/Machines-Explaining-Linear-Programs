@@ -1,9 +1,16 @@
 import torch
 import numpy as np
-
+import argparse
 from problems.plexplain import PlexPlain
 from attribution_methods.gradientxinput import GradientXInput
 from attribution_methods.integrated_gradients import IntegratedGradients
+
+parser = argparse.ArgumentParser(description='Evaluate attribution methods on the plexplain.')
+parser.add_argument("method", help="Select the method to evaluate on the plexplain LP. One of: Gradients 'grad', "
+                                   "Gradient times Input 'gxi', Integrated Gradients 'ig' or Occlusion 'occ'.",
+                    choices=['grad', 'gxi', 'ig', 'occ'])
+
+args = parser.parse_args()
 
 
 def print_nice(inp, res, attr, base=None, is_ig=False, is_opt=False):
@@ -125,3 +132,6 @@ def evaluate_plexplain(method):
         print("============= Occlusion attributions: =============")
         print("\tTOTEX\tcap PV\t cap bat OPEX \t  own generation")
         print(occ.round(4))
+
+
+evaluate_plexplain(args.method)

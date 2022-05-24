@@ -1,6 +1,23 @@
 import pandas as pd
 import numpy as np
 import xlp_utils
+import argparse
+
+parser = argparse.ArgumentParser(description='Print the results of the specified experiments in a nice matter.')
+parser.add_argument("problem", help="Problem specification. Possible options: Resource optimization 'ro'"
+                                    ", Maximum Flow 'mf', Knapsack 'ks' or Shortest Path 'sp'.",
+                    choices=['ro', 'mf', 'ks', 'sp'])
+parser.add_argument("--case", type=int, help="Problem case (from 1 onwards).")
+parser.add_argument("--methods", nargs='+', help="Select the methods to print the results for. It is possible to select"
+                                                 "one or multiple of: Gradients 'grad', Gradient times Input 'gxi'"
+                                                 "Integrated Gradients 'ig' or Occlusion 'occ'. By default, all "
+                                                 "methods are used.")
+parser.add_argument("--evaluation_function", help="Which evaluation functions should be considered. One or both of: "
+                                                  "Objective function: 'cost' and Optimal solution: 'opt'. "
+                                                  "By default, both are used.")
+parser.add_argument("--file_path", help="The path to the result data. If not specified, the default path "
+                                        "'results/{problem}_grad_gxi_ig_occ.json' is used.")
+args = parser.parse_args()
 
 
 def print_case(problem, case, methods=None, evaluation_functions=None, file_path=None):
@@ -140,3 +157,6 @@ def print_case(problem, case, methods=None, evaluation_functions=None, file_path
                         attr += f"Attributions for item {i + 1}: {xlp_utils.round_array_with_none(np.array(attributions[i]), 4).tolist()}\n"
 
                 print(attr)
+
+
+print_case(args.problem, args.case, args.methods, args.evaluation_function, args.file_path)

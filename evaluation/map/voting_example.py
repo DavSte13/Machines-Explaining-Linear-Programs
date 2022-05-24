@@ -3,6 +3,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 from cvxpylayers.torch import CvxpyLayer
+import argparse
+
+parser = argparse.ArgumentParser(description='Show the attribution methods results on the .')
+args = parser.parse_args()
 
 
 class MapLp(nn.Module):
@@ -140,3 +144,6 @@ def evaluate_map():
     jac = torch.autograd.functional.jacobian(map_opt, theta)
     print("Optimal solution derivative:\n", np.around(jac.detach().numpy(), 4))
     # the gradients of the optimal solutions are all zero, which causes all gradient based methods to fail.
+
+
+evaluate_map()

@@ -3,8 +3,21 @@ import evaluation.evaluate_resource_optimization as evaluate_resource_optimizati
 import evaluation.evaluate_knapsack as evaluate_knapsack
 import evaluation.evaluate_shortest_path as evaluate_shortest_path
 import evaluation.config as config
-
 import pandas as pd
+import argparse
+
+parser = argparse.ArgumentParser(description='Evaluate attribution methods on different LP and ILP problems.')
+parser.add_argument("problem", help="Select the problem to evaluate on. Possible options: Resource optimization 'ro'"
+                                    ", Maximum Flow 'mf', Knapsack 'ks' or Shortest Path 'sp'.",
+                    choices=['ro', 'mf', 'ks', 'sp'])
+parser.add_argument("--methods", nargs='+', help="Select which methods should be evaluated. It is possible to select"
+                                                 "one or multiple of: Gradients 'grad', Gradient times Input 'gxi'"
+                                                 "Integrated Gradients 'ig' or Occlusion 'occ'. By default, all "
+                                                 "methods are used.")
+parser.add_argument("--output_file", help="Specify an output file name. By default, the filename is "
+                                          "'problem_methods.json', where methods are the abbreviation of all used "
+                                          "methods separated by underscores.")
+args = parser.parse_args()
 
 
 def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file=None):
@@ -16,9 +29,7 @@ def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file
     problem is one of: Resource Optimization 'ro', Maximum Flow: 'mf', Knapsack: 'ks', Shortest Path: 'sp'
     methods is a tuple of at least one of the following: Gradients: 'grad', Gradient times Input 'gxi',
       Integrated Gradients 'ig', Occlusion: 'occ'
-
     """
-
     eval_problem = {
         'ro': evaluate_resource_optimization.evaluate_ro,
         'mf': evaluate_max_flow.evaluate_max_flow,
@@ -78,3 +89,6 @@ def evaluate_problems(problem, methods=('grad', 'gxi', 'ig', 'occ'), output_file
         save_path = f'results/{output_file}.json'
 
     results.to_json(save_path, orient='split')
+
+
+evaluate_problems(args.problem, args.method, args.output_file)
