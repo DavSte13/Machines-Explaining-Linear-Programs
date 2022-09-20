@@ -11,7 +11,7 @@ are based on cvxpylayers, and the ILPs are based on [CombOptNet](https://github.
 * Update the git submodule for CombOptNet: Run `git submodule init` and afterwards `git submodule update`
 * CombOptNet and therefore also the ILPs are based on the Gurobi solver. To use it, it is necessary to
   obtain a [license](https://www.gurobi.com/documentation/9.1/quickstart_mac/obtaining_a_grb_license.html) and download/set it.
-  This step is not necessary for the LPs. (This step is not required to evaluate the LPs).
+  This step is not necessary for the ILPs. (This step is not required to evaluate the LPs).
 * To allow the CombOptNet submodule to work properly, it is necessary to slightly change the inputs in the file `CombOptNet/models/comboptnet.py`.
   In lines 10 and 12, it is necessary to change the import statements from `utils.[...]` to `CombOptNet.utils.[...]`.
 
